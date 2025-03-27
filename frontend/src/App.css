@@ -24,7 +24,7 @@ body {
 /* Navigation Bar */
 .navbar {
   grid-column: 1 / -1;
-  background: white;
+  background: linear-gradient(135deg, #4299e1 0%, #B4EBE6 100%);
   padding: 0 2rem;
   display: flex;
   align-items: center;
@@ -61,8 +61,7 @@ body {
 }
 
 .nav-link.active {
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-  color: white;
+  background: #4299e1
 }
 
 /* Sidebar */
