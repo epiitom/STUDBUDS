@@ -1,23 +1,27 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey
-from sqlalchemy.orm import relationship
-from .database import Base
+from typing import Optional, List
+from pydantic import BaseModel, Field, EmailStr
+from datetime import datetime
 
-class User(Base):
-    __tablename__ = "users"
+class TodoItem(BaseModel):
+    id: Optional[str] = Field(None, alias="_id")
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    completed: bool = False
+    priority: Optional[str] = Field(None, pattern="^(low|medium|high)$")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, index=True)
-    username = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    study_plans = relationship("StudyPlan", back_populates="user")
+class TodoList(BaseModel):
+    id: Optional[str] = Field(None, alias="_id")
+    title: str
+    description: Optional[str] = None
+    items: List[TodoItem] = []
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    user_id: str
 
-class StudyPlan(Base):
-    __tablename__ = "study_plans"
-
-    id = Column(Integer, primary_key=True, index=True)
-    exam_date = Column(String)  # Store as string for simplicity
-    subjects = Column(JSON)  # Store as JSON array
-    class_level = Column(String)
-    study_preferences = Column(JSON, nullable=True)  # Store as JSON object
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Make user_id optional
-    user = relationship("User", back_populates="study_plans") 
+class User(BaseModel):
+    id: Optional[str] = Field(None, alias="_id")
+    email: EmailStr
+    username: str
+    hashed_password: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)

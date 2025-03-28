@@ -1,45 +1,63 @@
-from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import Optional, List
+from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 
-class UserBase(BaseModel):
+# User schemas
+class UserCreate(BaseModel):
     email: EmailStr
     username: str
-
-class UserCreate(UserBase):
     password: str
 
-class User(UserBase):
-    id: int
+class UserResponse(BaseModel):
+    id: str
+    email: EmailStr
+    username: str
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-class TokenData(BaseModel):
-    username: Optional[str] = None
+# TodoItem schemas
+class TodoItemCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    priority: Optional[str] = Field(None, pattern="^(low|medium|high)$")
 
-class StudyPlanBase(BaseModel):
-    exam_date: datetime
-    subjects: List[str]
-    class_level: str
-    study_preferences: Optional[dict] = None
+class TodoItemUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    completed: Optional[bool] = None
+    priority: Optional[str] = Field(None, pattern="^(low|medium|high)$")
 
-class StudyPlanCreate(StudyPlanBase):
-    pass
-
-class StudyPlan(StudyPlanBase):
-    id: int
-    user_id: int
+class TodoItemResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    due_date: Optional[datetime] = None
+    completed: bool
+    priority: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+# TodoList schemas
+class TodoListCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
 
+class TodoListUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+class TodoListResponse(BaseModel):
+    id: str
+    title: str
+    description: Optional[str] = None
+    items: List[TodoItemResponse]
+    created_at: datetime
+    user_id: str
+
+# Chat schema (keeping this from the previous implementation)
 class ChatMessage(BaseModel):
     message: str
-    subject: Optional[str] = None 

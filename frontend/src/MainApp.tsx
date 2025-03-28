@@ -13,8 +13,8 @@ interface ChatMessage {
 }
 
 interface TodoItem {
-  id: number;
-  text: string;
+  title: string;
+  description: string;
   completed: boolean;
 }
 
@@ -29,32 +29,27 @@ function MainApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeSidebarItem, setActiveSidebarItem] = useState('chat');
   const [activeNavItem, setActiveNavItem] = useState('home');
-  const [formData, setFormData] = useState({
-    examDate: '',
-    subjects: '',
-    classLevel: '',
-    studyPreferences: ''
-  });
-  const [formMessage, setFormMessage] = useState('');
-
-  // Todo List States
+  
+  // Todo states
+  const [todoTitle, setTodoTitle] = useState('');
+  const [todoDescription, setTodoDescription] = useState('');
   const [todos, setTodos] = useState<TodoItem[]>([]);
-  const [newTodo, setNewTodo] = useState('');
 
   // Timer States
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isRunning, setIsRunning] = useState(false);
-  const [timerSettings, setTimerSettings] = useState({
-    workTime: 25,
-    breakTime: 5,
-    longBreakTime: 15
-  });
   const [isBreak, setIsBreak] = useState(false);
   const [isLongBreak, setIsLongBreak] = useState(false);
   const [pomodoroCount, setPomodoroCount] = useState(0);
+  const timerSettings = {
+    workTime: 25,
+    breakTime: 5,
+    longBreakTime: 15
+  };
 
   useEffect(() => {
     checkApiHealth();
+    fetchTodos();
   }, []);
 
   // Timer Effect
@@ -73,53 +68,25 @@ function MainApp() {
   const handleTimerComplete = () => {
     setIsRunning(false);
     if (!isBreak && !isLongBreak) {
+      // Work session completed
       setPomodoroCount(prev => prev + 1);
       if (pomodoroCount % 4 === 3) {
+        // Every 4th pomodoro, take a long break
         setIsLongBreak(true);
         setTimeLeft(timerSettings.longBreakTime * 60);
       } else {
+        // Regular break
         setIsBreak(true);
         setTimeLeft(timerSettings.breakTime * 60);
       }
     } else {
+      // Break completed, back to work
       setIsBreak(false);
       setIsLongBreak(false);
       setTimeLeft(timerSettings.workTime * 60);
     }
     // Play notification sound
     new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3').play();
-  };
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
-  const handleTodoSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTodo.trim()) return;
-
-    const newItem: TodoItem = {
-      id: Date.now(),
-      text: newTodo.trim(),
-      completed: false
-    };
-
-    setTodos(prev => [...prev, newItem]);
-    setNewTodo('');
-  };
-
-  const toggleTodo = (id: number) => {
-    setTodos(prev =>
-      prev.map(todo =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
-    );
-  };
-
-  const deleteTodo = (id: number) => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
   };
 
   const checkApiHealth = async () => {
@@ -137,6 +104,44 @@ function MainApp() {
     }
   };
 
+  const fetchTodos = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/todolists/');
+      if (!response.ok) throw new Error('Failed to fetch todos');
+      const data = await response.json();
+      setTodos(data);
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+    }
+  };
+
+  const handleTodoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!todoTitle.trim()) return;
+
+    try {
+      const response = await fetch('http://localhost:8000/todolists/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: todoTitle,
+          description: todoDescription
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to create todo');
+      
+      // Clear form and refresh todos
+      setTodoTitle('');
+      setTodoDescription('');
+      await fetchTodos();
+    } catch (error) {
+      console.error('Error creating todo:', error);
+    }
+  };
+
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || isLoading) return;
@@ -144,6 +149,7 @@ function MainApp() {
     const userMessage = message.trim();
     setMessage('');
     setIsLoading(true);
+
     setChatHistory(prev => [...prev, { role: 'user', content: userMessage }]);
 
     try {
@@ -155,61 +161,22 @@ function MainApp() {
         body: JSON.stringify({ message: userMessage }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
+      if (!response.ok) throw new Error('Failed to get response');
 
       const data = await response.json();
       setChatHistory(prev => [...prev, { role: 'assistant', content: data.response }]);
     } catch (error) {
-      console.error('Error sending message:', error);
-      setChatHistory(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.'
-      }]);
+      console.error('Error:', error);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: 'Sorry, I encountered an error. Please try again.' }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormMessage('');
-
-    try {
-      const response = await fetch('http://localhost:8000/study-plans/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          exam_date: formData.examDate,
-          subjects: formData.subjects.split(',').map(s => s.trim()),
-          class_level: formData.classLevel,
-          study_preferences: JSON.parse(formData.studyPreferences || '{}')
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create study plan');
-      }
-
-      setFormMessage('Study plan created successfully!');
-      setFormData({
-        examDate: '',
-        subjects: '',
-        classLevel: '',
-        studyPreferences: ''
-      });
-    } catch (error) {
-      console.error('Error creating study plan:', error);
-      setFormMessage('Failed to create study plan. Please try again.');
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   const renderContent = () => {
@@ -254,36 +221,32 @@ function MainApp() {
         return (
           <div className="todo-container">
             <div className="todo-header">
-              <h2>To-Do List</h2>
+              <h2>Todo List</h2>
             </div>
             <form onSubmit={handleTodoSubmit} className="todo-form">
               <input
                 type="text"
                 className="todo-input"
-                value={newTodo}
-                onChange={(e) => setNewTodo(e.target.value)}
-                placeholder="Add a new task..."
+                value={todoTitle}
+                onChange={(e) => setTodoTitle(e.target.value)}
+                placeholder="Enter todo title..."
+                required
+              />
+              <textarea
+                className="todo-description"
+                value={todoDescription}
+                onChange={(e) => setTodoDescription(e.target.value)}
+                placeholder="Enter description..."
               />
               <button type="submit" className="timer-button">
-                Add
+                Add Todo
               </button>
             </form>
             <div className="todo-list">
-              {todos.map(todo => (
-                <div key={todo.id} className={`todo-item ${todo.completed ? 'completed' : ''}`}>
-                  <input
-                    type="checkbox"
-                    className="todo-checkbox"
-                    checked={todo.completed}
-                    onChange={() => toggleTodo(todo.id)}
-                  />
-                  <span className="todo-text">{todo.text}</span>
-                  <button
-                    className="todo-delete"
-                    onClick={() => deleteTodo(todo.id)}
-                  >
-                    ×
-                  </button>
+              {todos.map((todo, index) => (
+                <div key={index} className="todo-item">
+                  <h3>{todo.title}</h3>
+                  <p>{todo.description}</p>
                 </div>
               ))}
             </div>
@@ -314,46 +277,8 @@ function MainApp() {
                 Reset
               </button>
             </div>
-            <div className="timer-settings">
-              <div className="timer-label">
-                <span>Work Time (min)</span>
-                <input
-                  type="number"
-                  className="timer-input"
-                  value={timerSettings.workTime}
-                  onChange={(e) => setTimerSettings(prev => ({
-                    ...prev,
-                    workTime: Math.max(1, Math.min(60, parseInt(e.target.value) || 25))
-                  }))}
-                />
-              </div>
-              <div className="timer-label">
-                <span>Break Time (min)</span>
-                <input
-                  type="number"
-                  className="timer-input"
-                  value={timerSettings.breakTime}
-                  onChange={(e) => setTimerSettings(prev => ({
-                    ...prev,
-                    breakTime: Math.max(1, Math.min(30, parseInt(e.target.value) || 5))
-                  }))}
-                />
-              </div>
-              <div className="timer-label">
-                <span>Long Break (min)</span>
-                <input
-                  type="number"
-                  className="timer-input"
-                  value={timerSettings.longBreakTime}
-                  onChange={(e) => setTimerSettings(prev => ({
-                    ...prev,
-                    longBreakTime: Math.max(1, Math.min(60, parseInt(e.target.value) || 15))
-                  }))}
-                />
-              </div>
-            </div>
             <div className="timer-status">
-              {isBreak ? 'Break Time' : isLongBreak ? 'Long Break' : 'Work Time'}
+              {isBreak ? (isLongBreak ? 'Long Break' : 'Break Time') : 'Work Time'}
             </div>
             <div className="pomodoro-count">
               Completed Pomodoros: {pomodoroCount}
@@ -402,7 +327,7 @@ function MainApp() {
           onClick={() => setActiveSidebarItem('todo')}
         >
           <span>📝</span>
-          To-Do List
+          Todo List
         </a>
         <a
           href="#"
@@ -421,4 +346,4 @@ function MainApp() {
   );
 }
 
-export default MainApp; 
+export default MainApp;
