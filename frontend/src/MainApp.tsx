@@ -293,23 +293,8 @@ function MainApp() {
   return (
     <div className="app-container">
       <nav className="navbar">
-        <a href="#" className="nav-logo">Study Planner</a>
-        <div className="nav-links">
-          <a
-            href="#"
-            className={`nav-link ${activeNavItem === 'home' ? 'active' : ''}`}
-            onClick={() => setActiveNavItem('home')}
-          >
-            Home
-          </a>
-          <a
-            href="#"
-            className={`nav-link ${activeNavItem === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveNavItem('profile')}
-          >
-            Profile
-          </a>
-        </div>
+        
+        
       </nav>
 
       <aside className="sidebar">
