@@ -4,6 +4,7 @@ import LandingPage from "./LandingPage";
 import MainApp from "./MainApp";
 import SignInPage from "./(auth)/sign-in/[[...sign-in]]/page";
 import SignUpPage from "./(auth)/sign-up/[[...sign-up]]/page";
+import StudyProfilePage from "./pages/StudyProfilePage";
 
 function App() {
   return (
@@ -14,9 +15,15 @@ function App() {
           <Route index element={<LandingPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
-          
-          {/* Main App (Authenticated) with Dashboard */}
-          <Route path="/app" element={<MainApp />} />
+        </Route>
+
+        {/* Main App (Authenticated) with Dashboard */}
+        <Route path="/app" element={<MainApp />}>
+          <Route index element={<MainApp />} />
+          <Route path="chat" element={null} />
+          <Route path="todo" element={null} />
+          <Route path="timer" element={null} />
+          <Route path="study-profile" element={<StudyProfilePage />} />
         </Route>
       </Routes>
     </Router>

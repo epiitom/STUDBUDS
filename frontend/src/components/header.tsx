@@ -1,32 +1,40 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
-import { FileText, GraduationCap, LayoutDashboard, PenBox, Stars } from 'lucide-react'
+import { FileText, GraduationCap, LayoutDashboard, PenBox, Stars, Menu } from 'lucide-react'
 import { useNavigate } from "react-router-dom"
 import ToggleMode from "./toggle-mode";
 import { useState } from "react";
 
 const Header = () => {
-    const navigate = useNavigate(); // Initialize useNavigate
+    const navigate = useNavigate();
     const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+
     return (
         <header className="header">
             <nav className="nav">
-                <div className="nav-logo">StudyBuds</div>
+                <div className="nav-logo">
+                    <span className="logo-text">Study</span>
+                    <span className="logo-accent">Buds</span>
+                </div>
 
-                <div className="nav-items">
+                <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!isMobileMenuOpen)}>
+                    <Menu size={24} />
+                </button>
+
+                <div className={`nav-items ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
                     <SignedIn>
                         <button className="dashboard-btn" onClick={() => navigate('/app')}>
-                            <LayoutDashboard className='dashboard-icon' />
-                            <span className='dashboard-text'>Industry Insights</span>
+                            <LayoutDashboard className="dashboard-icon" />
+                            <span className="dashboard-text">Dashboard</span>
                         </button>
 
-                        {/* Growth Tools Dropdown */}
                         <div className="dropdown">
                             <button
                                 className="dropdown-btn"
                                 onClick={() => setDropdownOpen(!isDropdownOpen)}
                             >
                                 <Stars className="dropdown-icon" />
-                                <span className="dropdown-text">Growth Tools</span>
+                                <span className="dropdown-text">Tools</span>
                             </button>
 
                             {isDropdownOpen && (

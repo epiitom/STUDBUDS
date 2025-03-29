@@ -8,11 +8,6 @@ const Layout = () => {
       <main>
         <Outlet />
       </main>
-      <footer className="footer">
-            <div className="footer-container">
-              <p>Made with 💗 by StudyBuds</p>
-            </div>
-      </footer>
     </>
   );
 };
