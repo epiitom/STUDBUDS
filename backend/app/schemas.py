@@ -25,12 +25,15 @@ class TodoItemCreate(BaseModel):
     description: Optional[str] = None
     due_date: Optional[datetime] = None
     priority: Optional[str] = Field(None, pattern="^(low|medium|high)$")
+    completed: bool = False
+    deleted: bool = False
 
 class TodoItemUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     due_date: Optional[datetime] = None
     completed: Optional[bool] = None
+    deleted: Optional[bool] = None
     priority: Optional[str] = Field(None, pattern="^(low|medium|high)$")
 
 class TodoItemResponse(BaseModel):
@@ -39,6 +42,7 @@ class TodoItemResponse(BaseModel):
     description: Optional[str] = None
     due_date: Optional[datetime] = None
     completed: bool
+    deleted: bool
     priority: Optional[str] = None
     created_at: datetime
 
@@ -91,13 +95,13 @@ class StudyChallengeResponse(BaseModel):
     user_id: str
 
 class StudyProfileCreate(BaseModel):
-    subjects: List[SubjectCreate] = []
-    challenges: List[StudyChallengeCreate] = []
+    subjects: List[str] = []
+    challenges: List[str] = []
     current_vibe: Optional[VibeLevel] = None
 
 class StudyProfileUpdate(BaseModel):
-    subjects: Optional[List[SubjectCreate]] = None
-    challenges: Optional[List[StudyChallengeCreate]] = None
+    subjects: Optional[List[str]] = None
+    challenges: Optional[List[str]] = None
     current_vibe: Optional[VibeLevel] = None
 
 class StudyProfileResponse(BaseModel):

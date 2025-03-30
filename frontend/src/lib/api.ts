@@ -89,7 +89,7 @@ const createApi = (token: string | null, userId: string | null) => {
 };
 
 // Helper function to convert numeric vibe to string level
-function getVibeLevel(vibe: number): string {
+export function getVibeLevel(vibe: number): string {
   if (vibe <= 2) return 'meh';
   if (vibe <= 4) return 'okay';
   if (vibe <= 6) return 'good';
@@ -105,13 +105,8 @@ export const createStudyProfileApi = (token: string | null, userId: string | nul
       try {
         // Format the data according to the API expectations
         const formattedData = {
-          subjects: data.subjects.map(subject => ({
-            name: subject,
-            description: null
-          })),
-          challenges: data.challenges.map(challenge => ({
-            description: challenge
-          })),
+          subjects: data.subjects || [],
+          challenges: data.challenges || [],
           current_vibe: getVibeLevel(data.vibe)
         };
 
@@ -146,21 +141,39 @@ export const createStudyProfileApi = (token: string | null, userId: string | nul
 
     updateProfile: async (data: StudyProfileData) => {
       try {
+        // Format the data according to the API expectations
         const formattedData = {
-          subjects: data.subjects.map(subject => ({
-            name: subject,
-            description: null
-          })),
-          challenges: data.challenges.map(challenge => ({
-            description: challenge
-          })),
+          subjects: data.subjects || [],
+          challenges: data.challenges || [],
           current_vibe: getVibeLevel(data.vibe)
         };
 
+        console.log('Updating profile with data:', formattedData); // Debug log
         const response = await api.put('/study-profile/', formattedData);
         return response.data;
       } catch (error) {
-        handleError(error);
+        console.error('Error updating study profile:', error);
+        if (axios.isAxiosError(error)) {
+          const axiosError = error as AxiosError<ErrorResponse>;
+          const response = axiosError.response?.data;
+          let errorMessage = 'Failed to update study profile';
+          
+          if (response) {
+            if (typeof response.detail === 'string') {
+              errorMessage = response.detail;
+            } else if (typeof response.detail === 'object' && response.detail !== null) {
+              const detail = response.detail as Record<string, string[]>;
+              const errors = Object.entries(detail)
+                .map(([field, messages]) => `${field}: ${messages.join(', ')}`)
+                .join('\n');
+              errorMessage = `Validation Error:\n${errors}`;
+            } else if (response.message) {
+              errorMessage = response.message;
+            }
+          }
+          throw new APIError(errorMessage, axiosError.response?.status);
+        }
+        throw error;
       }
     },
 
@@ -169,6 +182,7 @@ export const createStudyProfileApi = (token: string | null, userId: string | nul
         const response = await api.get('/study-profile/');
         return response.data;
       } catch (error) {
+        console.error('Error getting study profile:', error);
         handleError(error);
       }
     },
@@ -213,9 +227,18 @@ export const createStudyTipsApi = (token: string | null, userId: string | null) 
   return {
     generateTip: async (data: StudyTipRequest) => {
       try {
-        const response = await api.post('/study-tips/generate/', data);
+        // Format the data according to the API expectations
+        const formattedData = {
+          based_on_vibe: getVibeLevel(data.vibe),
+          based_on_subjects: data.subjects || [],
+          based_on_challenges: data.challenges || []
+        };
+
+        console.log('Generating tip with data:', formattedData); // Debug log
+        const response = await api.post('/study-tips/generate/', formattedData);
         return response.data;
       } catch (error) {
+        console.error('Error generating study tip:', error);
         handleError(error);
       }
     },

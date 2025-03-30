@@ -10,6 +10,7 @@ import {
 } from './lib/api';
 import StudyProfileModal from './components/StudyProfileModal';
 import Header from './components/header';
+import { Box, Typography } from '@mui/material';
 
 interface ApiStatus {
   status: string;
@@ -288,7 +289,19 @@ const MainApp: React.FC = () => {
               ) : (
                 chatHistory.map((msg, index) => (
                   <div key={index} className={`chat-message ${msg.role}`}>
-                    {msg.content}
+                    {msg.role === 'assistant' ? (
+                      <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                        {msg.content.split('\n').map((point, pointIndex) => (
+                          point.trim() && (
+                            <Typography component="li" key={pointIndex} sx={{ mb: 1 }}>
+                              {point.trim().replace(/^•\s*/, '')}
+                            </Typography>
+                          )
+                        ))}
+                      </Box>
+                    ) : (
+                      msg.content
+                    )}
                   </div>
                 ))
               )}

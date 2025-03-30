@@ -194,6 +194,7 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
 
   const handleAddSubject = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event from bubbling up
     if (newSubject.trim() && !subjects.includes(newSubject.trim())) {
       setSubjects([...subjects, newSubject.trim()]);
       setNewSubject('');
@@ -206,6 +207,7 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
 
   const handleAddChallenge = (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event from bubbling up
     if (newChallenge.trim() && !challenges.includes(newChallenge.trim())) {
       setChallenges([...challenges, newChallenge.trim()]);
       setNewChallenge('');
@@ -218,6 +220,7 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Submitting profile with data:', { subjects, challenges, vibe: vibeLevel });
     onSubmit({
       subjects,
       challenges,
@@ -236,7 +239,7 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
             Add the subjects you're currently studying
           </Typography>
           
-          <Box component="form" onSubmit={handleAddSubject} sx={{ display: 'flex', mb: 2 }}>
+          <Box component="div" sx={{ display: 'flex', mb: 2 }}>
             <TextField
               fullWidth
               size="small"
@@ -247,10 +250,11 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
               sx={{ mr: 1 }}
             />
             <Button 
-              type="submit" 
+              type="button"
               variant="contained" 
               color="primary"
               startIcon={<AddIcon />}
+              onClick={handleAddSubject}
             >
               Add
             </Button>
@@ -284,7 +288,7 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
             Add the study challenges you're facing
           </Typography>
           
-          <Box component="form" onSubmit={handleAddChallenge} sx={{ display: 'flex', mb: 2 }}>
+          <Box component="div" sx={{ display: 'flex', mb: 2 }}>
             <TextField
               fullWidth
               size="small"
@@ -295,10 +299,11 @@ function StudyProfileForm({ onSubmit, initialData, isLoading }: StudyProfileForm
               sx={{ mr: 1 }}
             />
             <Button 
-              type="submit" 
+              type="button"
               variant="contained" 
               color="secondary"
               startIcon={<AddIcon />}
+              onClick={handleAddChallenge}
             >
               Add
             </Button>
