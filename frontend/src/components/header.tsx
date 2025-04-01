@@ -1,7 +1,7 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react"
 import { FileText, GraduationCap, LayoutDashboard, PenBox, Stars, Menu } from 'lucide-react'
 import { useNavigate } from "react-router-dom"
-import ToggleMode from "./toggle-mode";
+
 import { useState } from "react";
 
 const Header = () => {
@@ -43,20 +43,13 @@ const Header = () => {
                                         <GraduationCap className="menu-icon" />
                                         Study Prep
                                     </button>
-                                    <button className="dropdown-item" onClick={() => navigate("/resume")}>
-                                        <FileText className="menu-icon" />
-                                        Build Resume
-                                    </button>
-                                    <button className="dropdown-item" onClick={() => navigate("/ai-cover-letter")}>
-                                        <PenBox className="menu-icon" />
-                                        Cover Letter
-                                    </button>
+                                   
                                 </div>
                             )}
                         </div>
                     </SignedIn>
 
-                    <ToggleMode />
+              
 
                     <SignedOut>
                         <SignInButton>
